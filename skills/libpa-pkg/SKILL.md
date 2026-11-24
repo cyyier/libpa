@@ -47,6 +47,7 @@ packages/<name>-pa/
    - Follow `pa-coder` compiler gates: declare `-> ReturnType` on every function; keep parameters unannotated; functions ≤ 40 lines, cyclomatic complexity ≤ 8 (`PA_E061`), nesting ≤ 3; calls with > 2 args require keyword arguments (`PA_E051`); no negative indexing (`0 <= i < len`).
    - Keep container layouts monomorphic per helper (do not pass `str_view` at one call site and `span[u8]` at another; provide distinct `*_str` / `*_bytes` helpers when needed).
 2. **Thin Binding (`binding/export.pa`)**
+   - **`--shared` (`.so` / `.pyd`) is the ONLY default output target** for Python acceleration packages — never leave standalone `.exe` binaries in the package directory (standalone `.pa` tests and the 4th benchmark tier always compile inside temporary directories). On Windows, `pac build --shared` statically links MinGW/winpthread runtimes so the generated `.pyd` is a single self-contained binary with zero extra DLLs.
    - Import pure kernels via `from <core> import ...` (resolved with `-I packages/<name>-pa/pa`).
    - Use only types supported by `pac build --shared` direct CPython `PyInit__native` wrappers:
      - Parameters: scalars (`int`, `uint`, `int32`, `uint8`, `uint32`, `float`, `float32`, `bool`), `str_view`, or `span[<scalar>]` (writable in-place for pre-allocated Python buffers like `array.array` / `bytearray` / NumPy `ndarray`).
