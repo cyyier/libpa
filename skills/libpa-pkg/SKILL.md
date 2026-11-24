@@ -7,9 +7,9 @@ description: Scaffold, build, differentially test, benchmark, and package a new 
 
 End-to-end procedure for creating, verifying, benchmarking, and packaging a granular `<name>-pa` sub-package (`packages/<name>-pa/`).
 
-> **Prerequisites**: This skill builds on Pa's bundled `pa-coder` language skill. Install `pa-lang` and load the base skills first so your agent has the full Pa syntax and compiler gate rules:
+> **Prerequisites**: This skill builds on Pa's bundled `pa-coder` language skill. Install `pa-compiler` and load the base skills first so your agent has the full Pa syntax and compiler gate rules:
 > ```bash
-> pip install pa-lang
+> pip install pa-compiler
 > pac skill --install claude   # or: cursor | codex | copilot | antigravity
 > ```
 

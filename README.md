@@ -6,7 +6,7 @@ Monorepo of native LLVM-compiled `*-pa` acceleration packages for Python hot loo
 
 - **Zero syntax sugar, zero implicit magic**: Every kernel is flat, deterministic, and auditable with standard `ast.parse`.
 - **Single source of truth**: `packages/<name>-pa/pa/` holds 100% pure `.pa` kernels (no `@export`, no Python runtime dependency). `packages/<name>-pa/binding/` is a thin `@export` layer compiled with `pac build --shared`.
-- **1:1 intuitive PyPI naming**: `pip install <name>-pa` → `import <name>_pa` (e.g., `pip install levenshtein-pa` → `import levenshtein_pa`). Each package ships pre-compiled platform wheels so end users need neither `pa-lang` nor LLVM, while also registering a `pa_lang.libs` entry point for zero-config static imports in pure Pa projects.
+- **1:1 intuitive PyPI naming**: `pip install <name>-pa` → `import <name>_pa` (e.g., `pip install levenshtein-pa` → `import levenshtein_pa`). Each package ships pre-compiled platform wheels so end users need neither `pa-compiler` nor LLVM, while also registering a `pa_lang.libs` entry point for zero-config static imports in pure Pa projects.
 - **Eliminate Python `for`-loop overhead**: Each sub-package ships a `loop-template/` with pre-wired zero-copy In/Out buffers so you (or your AI agent) can edit only the inner `.pa` loop and compile a custom `.so` in one command.
 - **Standardized Origin & Benchmark Card**: Every sub-package `README.md` opens with an **Origin & Attribution** block followed by a reproducible 4-row **Benchmark vs. Original** table (Pure Python vs. single-call `<name>_pa` vs. `loop-template` batch vs. Pure Pa Standalone native binary, reporting runtime, wall-clock median, speedup, and isolated Peak RSS).
 

@@ -24,7 +24,7 @@ def find_pac() -> str:
     sibling = PKG_ROOT.parents[2] / "pa" / ".venv" / "bin" / "pac"
     if sibling.is_file():
         return str(sibling)
-    raise RuntimeError("`pac` compiler not found (install `pa-lang` or set PA_PAC)")
+    raise RuntimeError("`pac` compiler not found (install `pa-compiler` or set PA_PAC)")
 
 
 class BinaryDistribution(Distribution):

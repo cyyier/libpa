@@ -33,7 +33,7 @@ def find_pac() -> str:
     sibling = ROOT.parent / "pa" / ".venv" / "bin" / "pac"
     if sibling.is_file():
         return str(sibling)
-    raise SystemExit("error: `pac` compiler not found (install `pa-lang` or set PA_PAC)")
+    raise SystemExit("error: `pac` compiler not found (install `pa-compiler` or set PA_PAC)")
 
 
 def discover_packages(target: str | None = None) -> list[Path]:
