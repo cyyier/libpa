@@ -55,8 +55,10 @@ packages/<name>-pa/
    - Validate all buffer lengths and offset bounds before slicing (`span(buf, start, length)`); return `-1` on invalid input so Python raises `ValueError` instead of segfaulting.
 3. **1:1 Python Package & Platform Wheel (`python/<mod>/` + `setup.py`)**
    - Import the compiled extension as `from . import _native` (compiled to `python/<mod>/_native<EXT_SUFFIX>`).
+   - Set `requires-python = ">=3.10"` in `pyproject.toml`; `.github/workflows/release.yml` builds across **CPython 3.10, 3.11, 3.12, 3.13, and 3.14** on Linux (`manylinux_2_28`), macOS, and Windows via `cibuildwheel@v3.0.0`.
+   - **Forward-compatible `abi3` wheels (`cp311-abi3`)**: All C-API calls emitted by `pac build --shared` (including `Py_buffer` / `PyObject_GetBuffer` added in PEP 688) are compatible with `Py_LIMITED_API = 0x030B0000` (`pac build --shared --abi3`). Once `pa-compiler` with `--abi3` is published, packages can emit a single `cp311-abi3` wheel per OS covering Python 3.11+ (3.11, 3.12, 3.13, 3.14, 3.15+) alongside a regular `cp310-cp310` wheel for 3.10.
    - Provide complete `__init__.pyi` stubs, `py.typed`, and `_pa_libs_dir()` registered under `[project.entry-points."pa_lang.libs"]` so `pip install <name>-pa` works for both Python `import <mod>` and pure Pa static imports.
-   - `setup.py` overrides `Distribution.has_ext_modules = lambda self: True` so wheels get exact `cp3XX-<platform>` tags (never `py3-none-any`), and copies `pa/` into `<mod>/_pa/` inside the wheel.
+   - `setup.py` overrides `Distribution.has_ext_modules = lambda self: True` so wheels get exact `cp3XX-<platform>` (or `cp311-abi3-<platform>`) tags (never `py3-none-any`), and copies `pa/` into `<mod>/_pa/` inside the wheel.
 4. **Custom Batch Loop Template (`loop-template/custom_batch.pa`)**
    - Pre-wire zero-copy inputs (`span[...]`), upfront offset/length validation, and pre-allocated writable output `span[...]` buffers.
    - Clearly delimit the editable region with:
