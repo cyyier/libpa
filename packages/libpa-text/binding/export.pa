@@ -1,0 +1,45 @@
+# Thin @export binding layer for libpa-text.
+# Validates buffer shapes and offset bounds before calling pure pa/ kernels.
+from levenshtein import fnv1a_64_bytes, fnv1a_64_str, levenshtein_bytes, levenshtein_str
+
+
+@export
+def levenshtein_str_export(a: str_view, b: str_view) -> int:
+    return levenshtein_str(a, b)
+
+
+@export
+def levenshtein_bytes_export(a: span[u8], b: span[u8]) -> int:
+    return levenshtein_bytes(a, b)
+
+
+@export
+def fnv1a_64_str_export(s: str_view) -> uint:
+    return fnv1a_64_str(s)
+
+
+@export
+def fnv1a_64_bytes_export(data: span[u8]) -> uint:
+    return fnv1a_64_bytes(data)
+
+
+# Batch Levenshtein over a flat UTF-8 corpus + CSR offsets; returns -1 on invalid offsets.
+@export
+def levenshtein_batch_export(
+    query: span[u8],
+    corpus: span[u8],
+    offsets: span[int],
+    out: span[int],
+) -> int:
+    n = len(out)
+    if len(offsets) != n + 1:
+        return -1
+    clen = len(corpus)
+    for i in range(n):
+        start = offsets[i]
+        end = offsets[i + 1]
+        if start < 0 or end < start or end > clen:
+            return -1
+        cand = span(corpus, start, end - start)
+        out[i] = levenshtein_bytes(query, cand)
+    return n

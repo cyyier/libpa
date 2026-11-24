@@ -1,0 +1,16 @@
+# Pure Pa standalone test (compiled without Python runtime).
+from levenshtein import fnv1a_64_str, levenshtein_str
+
+
+def main() -> int:
+    if levenshtein_str("kitten", "sitting") != 3:
+        return 1
+    if levenshtein_str("", "abc") != 3:
+        return 2
+    if levenshtein_str("same", "same") != 0:
+        return 3
+    # Standard FNV-1a 64-bit test vector: fnv1a_64("foobar") == 0x85944171f73967e8
+    if fnv1a_64_str("foobar") != uint(0x85944171F73967E8):
+        return 4
+    print("pure pa tests ok")
+    return 0

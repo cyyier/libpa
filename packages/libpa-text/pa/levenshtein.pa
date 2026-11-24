@@ -1,0 +1,57 @@
+# Pure Pa text primitives: UTF-8 byte Levenshtein distance & FNV-1a 64-bit hash.
+# Zero @export, zero Python runtime dependency — safe for static standalone builds.
+
+# Two-row O(m) DP Levenshtein distance over str_view inputs.
+def levenshtein_str(a, b) -> int:
+    n = len(a)
+    m = len(b)
+    prev = [0] * (m + 1)
+    curr = [0] * (m + 1)
+    for j in range(m + 1):
+        prev[j] = j
+    for i in range(1, n + 1):
+        curr[0] = i
+        ai = a[i - 1]
+        for j in range(1, m + 1):
+            cost = 0 if ai == b[j - 1] else 1
+            curr[j] = min(prev[j] + 1, min(curr[j - 1] + 1, prev[j - 1] + cost))
+        for j in range(m + 1):
+            prev[j] = curr[j]
+    return prev[m]
+
+
+# Two-row O(m) DP Levenshtein distance over span[u8] byte buffers.
+def levenshtein_bytes(a, b) -> int:
+    n = len(a)
+    m = len(b)
+    prev = [0] * (m + 1)
+    curr = [0] * (m + 1)
+    for j in range(m + 1):
+        prev[j] = j
+    for i in range(1, n + 1):
+        curr[0] = i
+        ai = a[i - 1]
+        for j in range(1, m + 1):
+            cost = 0 if ai == b[j - 1] else 1
+            curr[j] = min(prev[j] + 1, min(curr[j - 1] + 1, prev[j - 1] + cost))
+        for j in range(m + 1):
+            prev[j] = curr[j]
+    return prev[m]
+
+
+# FNV-1a 64-bit hash over str_view; unsigned wrap-around matches standard spec.
+def fnv1a_64_str(s) -> uint:
+    h = uint(14695981039346656037)
+    prime = uint(1099511628211)
+    for i in range(len(s)):
+        h = (h ^ uint(s[i])) * prime
+    return h
+
+
+# FNV-1a 64-bit hash over span[u8]; unsigned wrap-around matches standard spec.
+def fnv1a_64_bytes(data) -> uint:
+    h = uint(14695981039346656037)
+    prime = uint(1099511628211)
+    for i in range(len(data)):
+        h = (h ^ uint(data[i])) * prime
+    return h

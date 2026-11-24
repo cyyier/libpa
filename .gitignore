@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.dylib
+*.dll
+*.o
+*.ll
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.venv/
+pa_boundary_fault.json

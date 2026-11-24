@@ -1,0 +1,57 @@
+# Custom batch-loop template for libpa-text.
+# Zero-copy In/Out buffers are already wired; edit ONLY the marked loop body below,
+# then compile with:
+#   pac build --shared --mode prod -I ../pa custom_batch.pa -o custom_batch.so
+from levenshtein import levenshtein_bytes
+
+
+def _offsets_valid(offsets, n, clen) -> bool:
+    if len(offsets) != n + 1:
+        return False
+    for i in range(n):
+        s = offsets[i]
+        e = offsets[i + 1]
+        if s < 0 or e < s or e > clen:
+            return False
+    return True
+
+
+# Zero-copy batch filter: writes matching (index, distance) pairs into pre-allocated out buffers.
+# Returns number of matches written, or -1 on invalid buffer lengths/offsets.
+@export
+def filter_batch(
+    query: span[u8],
+    corpus: span[u8],
+    offsets: span[int],
+    max_dist: int,
+    out_indices: span[int],
+    out_dists: span[int],
+) -> int:
+    n = len(out_indices)
+    if len(out_dists) != n:
+        return -1
+    if not _offsets_valid(offsets=offsets, n=n, clen=len(corpus)):
+        return -1
+
+    qlen = len(query)
+    hits = 0
+
+    # === BEGIN USER LOOP BODY (edit filter / scoring logic freely) ===
+    for i in range(n):
+        start = offsets[i]
+        clen = offsets[i + 1] - start
+        # Fast length-difference lower bound skips obvious non-matches in O(1)
+        diff = qlen - clen
+        if diff < 0:
+            diff = -diff
+        if diff > max_dist:
+            continue
+        cand = span(corpus, start, clen)
+        dist = levenshtein_bytes(query, cand)
+        if dist <= max_dist:
+            out_indices[hits] = i
+            out_dists[hits] = dist
+            hits += 1
+    # === END USER LOOP BODY ===
+
+    return hits
