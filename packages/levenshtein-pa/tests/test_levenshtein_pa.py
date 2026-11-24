@@ -4,6 +4,7 @@ from __future__ import annotations
 import array
 import importlib
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -87,7 +88,11 @@ def test_input_validation_errors():
 
 
 def test_loop_template_end_to_end(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    pac = os.environ.get("PA_PAC") or str(PKG_DIR.parent.parent.parent / "pa" / ".venv" / "bin" / "pac")
+    pac = (
+        os.environ.get("PA_PAC")
+        or shutil.which("pac")
+        or str(PKG_DIR.parent.parent.parent / "pa" / ".venv" / "bin" / "pac")
+    )
     so_path = tmp_path / f"custom_batch{SHARED_EXT}"
     subprocess.run(
         [
