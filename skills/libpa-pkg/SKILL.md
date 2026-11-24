@@ -99,7 +99,7 @@ If `pac` is in a virtualenv not on `PATH`, set `PA_PAC=/path/to/pac`.
      - **Cross-platform RSS helper**: for Python modes, use `resource.getrusage(resource.RUSAGE_SELF).ru_maxrss` on Unix (KiB on Linux -> `/ 1024.0`; bytes on macOS -> `/ (1024.0 * 1024.0)`), falling back to `psutil.Process().memory_info().rss` or `tracemalloc.get_traced_memory()[1]` on Windows; for the Pure Pa Standalone binary, measure with `/usr/bin/time -v` on Linux (falling back to wall-clock only if unavailable).
    - Assert 100% output parity across all four modes before printing the Markdown table.
 2. Run `python benchmarks/bench_<name>.py` and record the **actual measured numbers** (never fabricate data) in `packages/<name>-pa/README.md` using the standard header:
-   - **Origin & Attribution** blockquote (inspiring Python library/algorithm, clean-room pure-Pa reimplementation, zero GC / deterministic layout, MIT license).
+   - **Origin & Attribution** blockquote (cite the standard algorithm/specification or permissively licensed reference, confirm 100% clean-room pure-Pa implementation without reading/translating GPL source code, zero GC / deterministic layout, MIT license).
    - **Benchmark vs. Original** 4-row table (`Implementation | Runtime | Median Time | Speedup | Peak RSS`, plus a brief RSS footnote noting the CPython interpreter baseline, pre-allocated batch buffers, and pure-Pa zero-Python footprint, and the reproduce command).
    - Concise usage snippets for Python (`pip install <name>-pa` / `import <mod>`), Pure Pa, and `loop-template/`.
 

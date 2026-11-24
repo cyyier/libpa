@@ -1,8 +1,8 @@
 # `levenshtein-pa`
 
 > **Origin & Attribution**
-> - **Inspired by**: [`python-Levenshtein`](https://github.com/rapidfuzz/python-Levenshtein) & Python's [`difflib`](https://docs.python.org/3/library/difflib.html) (edit-distance API) + standard 64-bit FNV-1a specification.
-> - **Implementation**: 100% clean-room reimplementation from scratch in pure **Pa** (`.pa`) — zero C/C++ boilerplate, zero garbage collection, deterministic stack/RAII memory layout, compiled via LLVM `-O2`.
+> - **Algorithm**: Classic Wagner–Fischer two-row Levenshtein edit distance (1965) & public-domain 64-bit FNV-1a hash specification.
+> - **Implementation**: 100% clean-room implementation from scratch in pure **Pa** (`.pa`) — zero C/C++ boilerplate, zero garbage collection, deterministic stack/RAII memory layout, compiled via LLVM `-O2`.
 > - **License**: MIT
 
 ## Benchmark vs. Original
