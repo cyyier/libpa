@@ -1,10 +1,11 @@
-"""libpa.text — Native LLVM-compiled fuzzy text matching and hashing kernels."""
+"""levenshtein_pa — Native LLVM-compiled fuzzy text matching and hashing kernels."""
 from __future__ import annotations
 
 import array
 from collections.abc import Sequence
+from pathlib import Path
 
-from . import _text
+from . import _native
 
 __all__ = [
     "levenshtein",
@@ -14,11 +15,19 @@ __all__ = [
 ]
 
 
+def _pa_libs_dir() -> str:
+    """Entry point for `pa_lang.libs` so pure Pa projects can `from levenshtein import ...` directly."""
+    bundled = Path(__file__).resolve().parent / "_pa"
+    if bundled.is_dir():
+        return str(bundled)
+    return str(Path(__file__).resolve().parents[2] / "pa")
+
+
 def levenshtein(a: str, b: str) -> int:
     """Return the UTF-8 byte Levenshtein edit distance between two strings."""
     if not isinstance(a, str) or not isinstance(b, str):
         raise TypeError("levenshtein() expects two str arguments")
-    return _text.levenshtein_str_export(a, b)
+    return _native.levenshtein_str_export(a, b)
 
 
 def levenshtein_bytes(
@@ -26,14 +35,14 @@ def levenshtein_bytes(
     b: bytes | bytearray | memoryview,
 ) -> int:
     """Return the Levenshtein edit distance between two contiguous byte buffers."""
-    return _text.levenshtein_bytes_export(a, b)
+    return _native.levenshtein_bytes_export(a, b)
 
 
 def fnv1a_64(data: str | bytes | bytearray | memoryview) -> int:
     """Return the 64-bit unsigned FNV-1a hash of a string or byte buffer."""
     if isinstance(data, str):
-        return _text.fnv1a_64_str_export(data)
-    return _text.fnv1a_64_bytes_export(data)
+        return _native.fnv1a_64_str_export(data)
+    return _native.fnv1a_64_bytes_export(data)
 
 
 def levenshtein_batch(query: str, candidates: Sequence[str]) -> list[int]:
@@ -56,7 +65,7 @@ def levenshtein_batch(query: str, candidates: Sequence[str]) -> list[int]:
         offsets.append(pos)
     corpus = b"".join(chunks)
     out = array.array("q", [0] * n)
-    rc = _text.levenshtein_batch_export(q_bytes, corpus, offsets, out)
+    rc = _native.levenshtein_batch_export(q_bytes, corpus, offsets, out)
     if rc < 0:
         raise ValueError("invalid corpus/offsets passed to native batch kernel")
     return out.tolist()

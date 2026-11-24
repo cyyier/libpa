@@ -1,4 +1,4 @@
-"""Differential & integration tests for libpa.text and its loop-template."""
+"""Differential & integration tests for levenshtein-pa and its loop-template."""
 from __future__ import annotations
 
 import array
@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-import libpa
-from libpa.text import fnv1a_64, levenshtein, levenshtein_batch, levenshtein_bytes
+import levenshtein_pa
+from levenshtein_pa import fnv1a_64, levenshtein, levenshtein_batch, levenshtein_bytes
 
 PKG_DIR = Path(__file__).resolve().parent.parent
 SHARED_EXT = ".pyd" if sys.platform == "win32" else ".so"
@@ -36,10 +36,10 @@ def ref_fnv1a_64(data: bytes) -> int:
     return h
 
 
-def test_pep420_namespace_package():
-    # PEP 420: libpa has no __init__.py (so __file__ is None)
-    assert getattr(libpa, "__file__", None) is None
-    assert not (PKG_DIR / "python" / "libpa" / "__init__.py").exists()
+def test_package_name_and_pa_libs_entry():
+    assert levenshtein_pa.__name__ == "levenshtein_pa"
+    pa_dir = Path(levenshtein_pa._pa_libs_dir())
+    assert (pa_dir / "levenshtein.pa").is_file()
 
 
 @pytest.mark.parametrize(

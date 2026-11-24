@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "levenshtein-pa"
+version = "0.1.0"
+description = "Native LLVM-compiled Levenshtein edit distance and FNV-1a 64-bit hashing for Python and Pa"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+keywords = ["levenshtein", "fuzzy", "edit-distance", "fnv1a", "pa", "llvm", "native"]
+
+[project.urls]
+Homepage = "https://palang.dev"
+Repository = "https://github.com/cyyier/libpa"
+
+[project.entry-points."pa_lang.libs"]
+levenshtein = "levenshtein_pa:_pa_libs_dir"
+
+[tool.setuptools.packages.find]
+where = ["python"]
+include = ["levenshtein_pa*"]
+
+[tool.setuptools.package-data]
+"levenshtein_pa" = ["*.so", "*.pyd", "*.pyi", "py.typed", "_pa/*.pa"]

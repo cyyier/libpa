@@ -1,4 +1,4 @@
-# `libpa-text` Custom Batch Loop Template
+# `levenshtein-pa` Custom Batch Loop Template
 
 When calling a single function millions of times from a Python `for` loop, Python interpreter & boundary overhead dominates. This template moves your entire loop into native LLVM code while keeping all zero-copy In/Out buffer wiring pre-built.
 

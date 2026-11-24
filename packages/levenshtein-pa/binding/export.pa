@@ -1,4 +1,4 @@
-# Thin @export binding layer for libpa-text.
+# Thin @export binding layer for levenshtein-pa.
 # Validates buffer shapes and offset bounds before calling pure pa/ kernels.
 from levenshtein import fnv1a_64_bytes, fnv1a_64_str, levenshtein_bytes, levenshtein_str
 

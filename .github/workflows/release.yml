@@ -1,0 +1,73 @@
+name: Build & Publish Package Wheel
+
+on:
+  push:
+    tags:
+      # Push a package-scoped tag such as `levenshtein-pa-v0.1.0` to release that single package.
+      - "*-pa-v*"
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package directory under packages/ (e.g. levenshtein-pa)"
+        required: true
+        default: "levenshtein-pa"
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.parse.outputs.package }}
+    steps:
+      - id: parse
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            PKG="${{ inputs.package }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            PKG="${TAG%-v*}"
+          fi
+          echo "package=${PKG}" >> "$GITHUB_OUTPUT"
+
+  build_wheels:
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pypa/cibuildwheel@v2.22.0
+        with:
+          package-dir: packages/${{ needs.resolve.outputs.package }}
+        env:
+          CIBW_BUILD: "cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_*"
+          CIBW_BEFORE_BUILD: "pip install pa-lang"
+          CIBW_TEST_REQUIRES: "pytest"
+          CIBW_TEST_COMMAND: "pytest {package}/tests"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ needs.resolve.outputs.package }}-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  publish:
+    needs: [resolve, build_wheels]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-${{ needs.resolve.outputs.package }}-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

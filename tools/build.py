@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Unified Monorepo build, check, and test runner for libpa packages.
+"""Unified Monorepo build, check, test, and wheel runner for libpa (`*-pa`) packages.
 
 Usage:
     python tools/build.py check [pkg]
     python tools/build.py build [pkg] [--mode dev|prod]
     python tools/build.py test  [pkg]
+    python tools/build.py wheel [pkg] [--out-dir dist]
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ import os
 import shutil
 import subprocess
 import sys
+import sysconfig
 import tempfile
 from pathlib import Path
 
@@ -47,8 +49,8 @@ def discover_packages(target: str | None = None) -> list[Path]:
 
 
 def mod_name_for(pkg_dir: Path) -> str:
-    # packages/libpa-text -> "text"
-    return pkg_dir.name.removeprefix("libpa-").replace("-", "_")
+    # 1:1 intuitive mapping: packages/levenshtein-pa -> "levenshtein_pa"
+    return pkg_dir.name.replace("-", "_")
 
 
 def run(cmd: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:
@@ -68,13 +70,14 @@ def cmd_check(pac: str, pkgs: list[Path]) -> None:
 
 
 def cmd_build(pac: str, pkgs: list[Path], mode: str = "prod") -> None:
+    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX") or SHARED_EXT
     for pkg in pkgs:
         mod = mod_name_for(pkg)
         pa_dir = pkg / "pa"
         export_pa = pkg / "binding" / "export.pa"
-        out_dir = pkg / "python" / "libpa" / mod
+        out_dir = pkg / "python" / mod
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_so = out_dir / f"_{mod}{SHARED_EXT}"
+        out_so = out_dir / f"_native{ext_suffix}"
         run([pac, "check", "--mode", mode, "-I", str(pa_dir), str(export_pa)])
         run([pac, "build", "--shared", "--mode", mode, "-I", str(pa_dir), str(export_pa), "-o", str(out_so)])
 
@@ -94,9 +97,8 @@ def cmd_test(pac: str, pkgs: list[Path]) -> None:
                 run([pac, "build", "--mode", "dev", "-I", str(pa_dir), str(pa_test), "-o", str(bin_path)])
                 run([str(bin_path)])
 
-        # 2. Compile loop-template/custom_batch.pa and verify importability
-        loop_dir = pkg / "loop-template"
-        loop_pa = loop_dir / "custom_batch.pa"
+        # 2. Compile loop-template/custom_batch.pa and verify build
+        loop_pa = pkg / "loop-template" / "custom_batch.pa"
         if loop_pa.is_file():
             with tempfile.TemporaryDirectory() as tmp:
                 so_path = Path(tmp) / f"custom_batch{SHARED_EXT}"
@@ -111,17 +113,28 @@ def cmd_test(pac: str, pkgs: list[Path]) -> None:
         run([py, "-m", "pytest", "-v", str(tests_dir)], env=env)
 
 
+def cmd_wheel(pac: str, pkgs: list[Path], out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ, PA_PAC=pac)
+    for pkg in pkgs:
+        run([sys.executable, "-m", "pip", "wheel", "--no-build-isolation", "--no-deps", "-w", str(out_dir), str(pkg)], env=env)
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="libpa monorepo build & test tool")
+    ap = argparse.ArgumentParser(description="libpa monorepo build, test & wheel tool")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     for name in ("check", "test"):
         sp = sub.add_parser(name)
-        sp.add_argument("package", nargs="?", help="package name (e.g. libpa-text); omit for all")
+        sp.add_argument("package", nargs="?", help="package name (e.g. levenshtein-pa); omit for all")
 
     bp = sub.add_parser("build")
-    bp.add_argument("package", nargs="?", help="package name (e.g. libpa-text); omit for all")
+    bp.add_argument("package", nargs="?", help="package name (e.g. levenshtein-pa); omit for all")
     bp.add_argument("--mode", choices=("dev", "prod"), default="prod")
+
+    wp = sub.add_parser("wheel")
+    wp.add_argument("package", nargs="?", help="package name (e.g. levenshtein-pa); omit for all")
+    wp.add_argument("--out-dir", default=str(ROOT / "dist"))
 
     args = ap.parse_args()
     pac = find_pac()
@@ -133,6 +146,8 @@ def main() -> int:
         cmd_build(pac, pkgs, mode=args.mode)
     elif args.cmd == "test":
         cmd_test(pac, pkgs)
+    elif args.cmd == "wheel":
+        cmd_wheel(pac, pkgs, Path(args.out_dir))
     return 0
 
 

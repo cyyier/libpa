@@ -1,4 +1,4 @@
-# Custom batch-loop template for libpa-text.
+# Custom batch-loop template for levenshtein-pa.
 # Zero-copy In/Out buffers are already wired; edit ONLY the marked loop body below,
 # then compile with:
 #   pac build --shared --mode prod -I ../pa custom_batch.pa -o custom_batch.so
